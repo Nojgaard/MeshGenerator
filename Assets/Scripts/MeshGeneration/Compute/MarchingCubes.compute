@@ -1,0 +1,219 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+#include "MarchTables.compute"
+
+
+struct Ball {
+	float strength;
+    float radius;
+	float3 position;
+};
+
+struct Triangle {
+    int a, b, c;
+};
+
+RWStructuredBuffer<float3> vertexBuffer;
+RWStructuredBuffer<float3> normalBuffer;
+AppendStructuredBuffer<Triangle> triangles;
+RWStructuredBuffer<Ball> metaballs;
+RWStructuredBuffer<float3> cubePositions;
+
+int numBalls;
+int numCubesPerAxis;
+float threshold;
+float cubeLength;
+float gridCenter;
+
+/*
+float metaballFalloffFunction(float strength, float radius, float3 dist) {
+	return (radius*radius) / (dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
+}
+*/
+
+float metaballFalloffFunction(float strength, float radius, float3 dist) {
+    float di2 = (dist.x * dist.x + dist.y * dist.y + dist.z * dist.z);
+	float tmp = (di2/(radius*radius))-1;
+    float res = strength * tmp * tmp * tmp * tmp;
+    return res;
+}
+
+float3 interpolateVerts(float4 v1, float4 v2) {
+    float t = (threshold - v1.w) / (v2.w - v1.w);
+    return v1.xyz + t * (v2.xyz-v1.xyz);
+}
+
+float3 interpolateVerts(float3 v1, float3 v2, float w1, float w2) {
+    float t = (threshold - w1) / (w2 - w1);
+    return v1 + t * (v2-v1);
+}
+
+/*
+int[12][3] edgeCoordTable {
+    {0, -1, -1},
+    {}
+}*/
+
+float surfaceFunction(float3 pos)  {
+    float val = 0;
+    for (int i = 0; i < numBalls; i++){
+        float3 dist = pos - metaballs[i].position;
+        if (length(dist) < metaballs[i].radius) {
+            val += metaballFalloffFunction(metaballs[i].strength, metaballs[i].radius, dist);
+        }
+    }
+    return val;
+}
+/*
+void transformEdges(float4 cubeCorners[8], float3 normals[8]]) {
+    float alpha = 0.1;
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0 j < 8; j++) {
+            float3 candPos = cubeCorners[j].xyz + alpha*normals[j];
+            float w = surfaceFunction(candPos);
+            if (w < threshold) {
+                cubeCorners[j].xyz = candPos;
+                cubeCorners[j].w = w;
+            } else {
+                return;
+            }
+        }
+    }
+    return;
+}*/
+
+[numthreads(8,8,8)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= numCubesPerAxis || id.y >= numCubesPerAxis || id.z >= numCubesPerAxis) {
+        return;
+    }
+    int idx = id.z * numCubesPerAxis * numCubesPerAxis + id.y * numCubesPerAxis + id.x;
+    float3 centerPos = cubePositions[idx] + gridCenter;
+    float4 cubeCorners[8] = {
+        float4(-cubeLength, -cubeLength, -cubeLength, 0),
+        float4(cubeLength, -cubeLength, -cubeLength, 0),
+        float4(cubeLength, -cubeLength, cubeLength, 0),
+        float4(-cubeLength, -cubeLength, cubeLength, 0),
+        float4(-cubeLength, cubeLength, -cubeLength, 0),
+        float4(cubeLength, cubeLength, -cubeLength, 0),
+        float4(cubeLength, cubeLength, cubeLength, 0),
+        float4(-cubeLength, cubeLength, cubeLength, 0),
+    };
+
+    float3 normals[8] = {float3(0,0,0),float3(0,0,0),float3(0,0,0),float3(0,0,0),float3(0,0,0),float3(0,0,0),float3(0,0,0),float3(0,0,0)};
+    float cubeWidth = cubeLength * 2;
+
+    for (int j = 0; j < 8; j++) {
+        cubeCorners[j].xyz += centerPos;
+        cubeCorners[j].w = surfaceFunction(cubeCorners[j].xyz);
+
+        normals[j].x = surfaceFunction(cubeCorners[j].xyz  + float3(cubeWidth, 0, 0));
+        normals[j].x -= surfaceFunction(cubeCorners[j].xyz  - float3(cubeWidth, 0, 0));
+
+
+        normals[j].y = surfaceFunction(cubeCorners[j].xyz  + float3(0, cubeWidth, 0));
+        normals[j].y -= surfaceFunction(cubeCorners[j].xyz  - float3(0, cubeWidth, 0));
+
+
+        normals[j].z = surfaceFunction(cubeCorners[j].xyz  + float3(0, 0,cubeWidth));
+        normals[j].z -= surfaceFunction(cubeCorners[j].xyz  - float3(0, 0, cubeWidth));
+
+        normals[j] = normalize(normals[j]);
+    }
+
+
+    // Calculate unique index for each cube configuration.
+    // There are 256 possible values
+    // A value of 0 means cube is entirely inside surface; 255 entirely outside.
+    // The value is used to look up the edge table, which indicates which edges of the cube are cut by the isosurface.
+    int cubeIndex = 0;
+    if (cubeCorners[0].w < threshold) cubeIndex += 1; 
+    if (cubeCorners[1].w < threshold) cubeIndex += 2;
+    if (cubeCorners[2].w < threshold) cubeIndex += 4;
+    if (cubeCorners[3].w < threshold) cubeIndex += 8;
+    if (cubeCorners[4].w < threshold) cubeIndex += 16;
+    if (cubeCorners[5].w < threshold) cubeIndex += 32;
+    if (cubeCorners[6].w < threshold) cubeIndex += 64;
+    if (cubeCorners[7].w < threshold) cubeIndex += 128;
+
+    if (cubeIndex == 0 || cubeIndex == 255) {
+        return;
+    }
+
+    //transformEdges(cubeCorners, normals);
+    /*
+    float alpha = 0.3;
+    for (int i = 0; i < 10; i++) {
+        bool valid = true;
+        for (int j = 0; j < 8; j++) {
+            float3 candPos = cubeCorners[j].xyz + alpha*normals[j];
+            float w = surfaceFunction(candPos);
+            if (w < threshold) {
+                cubeCorners[j].xyz = candPos;
+                cubeCorners[j].w = w;
+            } else {
+                valid = false;
+            }
+        }
+        if (!valid) {break;}
+    }
+    */
+
+
+    cubeIndex -= 1;
+    // Create triangles for current cube configuration
+    for (int i = 0; triangulation[cubeIndex][i] != -1; i +=3) {
+        Triangle tri;
+       /* int edgeA = triangulation[cubeIndex][i];
+        int edgeB = triangulation[cubeIndex][i+1];
+        int edgeC = triangulation[cubeIndex][i+2];
+        // Get indices of corner points A and B for each of the three edges
+        // of the cube that need to be joined to form the triangle.
+        int a0 = cornerIndexAFromEdge[edgeA];
+        int b0 = cornerIndexBFromEdge[edgeA];
+
+        int a1 = cornerIndexAFromEdge[edgeB];
+        int b1 = cornerIndexBFromEdge[edgeB];
+
+        int a2 = cornerIndexAFromEdge[edgeC];
+        int b2 = cornerIndexBFromEdge[edgeC];
+        */
+        //int vids[3] = {0,0,0};
+        int va, vb, vc;
+        for (int j = 0; j < 3; j++) {
+            int edgeId = triangulation[cubeIndex][i + j];
+            int vid = vertexBuffer.IncrementCounter();
+            normalBuffer.IncrementCounter();
+            
+            int a = cornerIndexAFromEdge[edgeId];
+            int b = cornerIndexBFromEdge[edgeId];
+            vertexBuffer[vid] = interpolateVerts(cubeCorners[a], cubeCorners[b]);
+            normalBuffer[vid] = -interpolateVerts(normals[a], normals[b], cubeCorners[a].w, cubeCorners[b].w);
+            if (j == 0) {
+                tri.a = vid;
+            } else if (j == 1) {
+                tri.b = vid;
+            } else if (j == 2) {
+                tri.c =  vid;
+            }
+        }
+
+
+        /*tri.pointA = interpolateVerts(cubeCorners[a0], cubeCorners[b0]);
+        tri.pointB = interpolateVerts(cubeCorners[a1], cubeCorners[b1]);
+        tri.pointC = interpolateVerts(cubeCorners[a2], cubeCorners[b2]);
+
+        tri.normalA = interpolateVerts(normals[a0], normals[b0], cubeCorners[a0].w, cubeCorners[b0].w);
+        tri.normalB = interpolateVerts(normals[a1], normals[b1], cubeCorners[a1].w, cubeCorners[b1].w);
+        tri.normalC = interpolateVerts(normals[a2], normals[b2], cubeCorners[a2].w, cubeCorners[b2].w);
+        */
+        /*
+        tri.pointA = interpolateVerts(cubeCorners[a0] + alpha*normals[a0], cubeCorners[b0] + alpha*normals[b0]);
+        tri.pointB = interpolateVerts(cubeCorners[a1] + alpha*normals[a1], cubeCorners[b1] + alpha*normals[b1]);
+        tri.pointC = interpolateVerts(cubeCorners[a2] + alpha*normals[a2], cubeCorners[b2] + alpha*normals[b2]);
+        */
+        triangles.Append(tri);
+    }
+}

@@ -1,0 +1,12 @@
+.vscode/
+Assembly-CSharp.csproj
+EcoSim.sln
+Library/
+Logs/
+Packages/
+ProjectSettings/
+Temp/
+UserSettings/
+obj/
+
+
