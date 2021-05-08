@@ -56,6 +56,25 @@ public class BodyGenerator : MonoBehaviour
     {
     }
 
+    void UpdateVisibility() {
+        if (!Input.GetMouseButtonDown(0)) { return; }
+        RaycastHit hit = new RaycastHit();
+        Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+        if (Physics.Raycast(ray, out hit))
+        {           
+            if (hit.collider.gameObject == this.gameObject)
+            {
+                Debug.Log("Click!!!");
+            }
+            else
+            {
+                Debug.Log("Click outside");
+            
+            }
+        }
+
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -65,6 +84,10 @@ public class BodyGenerator : MonoBehaviour
             cubeGrid.UpdateGrid(threshold, this.transform.position, resolution, width, computeShader);
             Mesh mesh = this.GetComponent<MeshFilter>().sharedMesh;
             cubeGrid.March(spine.GetComponentsInChildren<Bone>(), mesh);
+
+            GetComponent<MeshCollider>().sharedMesh  = mesh;
+            GetComponent<MeshCollider>().gameObject.layer = 2;
         }
+        UpdateVisibility();
     }
 }

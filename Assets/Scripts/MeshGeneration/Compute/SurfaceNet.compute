@@ -133,19 +133,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     for (i = 0; i < 8; i++) {
         cubeCorners[i].xyz += centerPos;
         cubeCorners[i].w = surfaceFunction(cubeCorners[i].xyz);
-
-        normals[i].x = surfaceFunction(cubeCorners[i].xyz  + float3(cubeWidth, 0, 0));
-        normals[i].x -= surfaceFunction(cubeCorners[i].xyz  - float3(cubeWidth, 0, 0));
-
-
-        normals[i].y = surfaceFunction(cubeCorners[i].xyz  + float3(0, cubeWidth, 0));
-        normals[i].y -= surfaceFunction(cubeCorners[i].xyz  - float3(0, cubeWidth, 0));
-
-
-        normals[i].z = surfaceFunction(cubeCorners[i].xyz  + float3(0, 0,cubeWidth));
-        normals[i].z -= surfaceFunction(cubeCorners[i].xyz  - float3(0, 0, cubeWidth));
-
-        normals[i] = normalize(normals[i]);
     }
 
 
@@ -165,6 +152,21 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     if (cubeIndex == 0 || cubeIndex == 255) {
         return;
+    }
+
+    for (i = 0; i < 8; i++) {
+        normals[i].x = surfaceFunction(cubeCorners[i].xyz  + float3(cubeWidth, 0, 0));
+        normals[i].x -= surfaceFunction(cubeCorners[i].xyz  - float3(cubeWidth, 0, 0));
+
+
+        normals[i].y = surfaceFunction(cubeCorners[i].xyz  + float3(0, cubeWidth, 0));
+        normals[i].y -= surfaceFunction(cubeCorners[i].xyz  - float3(0, cubeWidth, 0));
+
+
+        normals[i].z = surfaceFunction(cubeCorners[i].xyz  + float3(0, 0,cubeWidth));
+        normals[i].z -= surfaceFunction(cubeCorners[i].xyz  - float3(0, 0, cubeWidth));
+
+        normals[i] = normalize(normals[i]);
     }
 
     int crossings = 0;

@@ -128,13 +128,19 @@ public class CubeGrid
         GPUBall[] gpuBalls = new GPUBall[metaballs.Length];
         for(int i = 0; i < metaballs.Length; i++) {
             Bone metaball = metaballs[i];
-            gpuBalls[i].position = metaball.transform.position;
+            //gpuBalls[i].position = metaball.transform.position;
+            gpuBalls[i].position = metaball.BallCenter;
             gpuBalls[i].radius = metaball.boneSettings.radius;
             gpuBalls[i].strength = metaball.boneSettings.strength;
         }
         metaballsBuffer.SetData(gpuBalls);
         shader.SetBuffer(0, "metaballs", metaballsBuffer);
         shader.SetInt("numBalls", metaballs.Length);
+
+        shader.SetInt("numCubesPerAxis", numCubesPerAxis);
+        shader.SetFloat("threshold", threshold);
+        shader.SetFloat("cubeLength", cubeWidth/2);
+        shader.SetVector("gridCenter", center);
 
         triangleBuffer.SetCounterValue(0);
         vertexBuffer.SetCounterValue(0);
@@ -165,18 +171,17 @@ public class CubeGrid
     }
 
     public void CreateSurfaceNetMesh(Mesh mesh)  {
-        Debug.Log("Surface Net Mesh");
 
         int vertexCount = GetCount(vertexBuffer);
         int triangleCount = GetCount(triangleBuffer);
 
         var gpuVertices = new GPUVertex[vertexCount];
         vertexBuffer.GetData(gpuVertices, 0, 0, vertexCount);
-
+/*
         foreach (GPUVertex v in gpuVertices) {
             vertexIds[v.idx] = -1;
         }
-        
+  */      
         var vertices = new Vector3[vertexCount];
         var normals = new Vector3[vertexCount];
         for (int i = 0; i < vertexCount; i++) {
@@ -260,11 +265,6 @@ public class CubeGrid
         shader.SetBuffer(0, "vertexBuffer", vertexBuffer);
         shader.SetBuffer(0, "normalBuffer", normalBuffer);
         shader.SetBuffer(0, "triangles", triangleBuffer);
-
-        shader.SetInt("numCubesPerAxis", numCubesPerAxis);
-        shader.SetFloat("threshold", threshold);
-        shader.SetFloat("cubeLength", cubeWidth/2);
-        shader.SetVector("gridCenter", center);
     }
 
     void CreateBuffers() {

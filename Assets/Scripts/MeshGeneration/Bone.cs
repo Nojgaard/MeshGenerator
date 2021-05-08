@@ -10,6 +10,13 @@ public class Bone : MonoBehaviour
 
     private bool isHovering;
 
+    public Vector3 BallCenter { get { return -transform.up * .34f * boneSettings.radius + transform.position; }}
+
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.DrawCube(BallCenter, new Vector3(0.05f, .05f, .05f));
+    }
+
     void OnMouseDrag() {
         Plane plane = new Plane(Camera.main.transform.forward, transform.position);
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -19,7 +26,7 @@ public class Bone : MonoBehaviour
         }
 
         Vector3 point = ray.GetPoint(dist);
-        point.z = transform.position.z;
+        point.x = transform.position.x;
         transform.position = point;
 
         body.UpdateBodyMesh();

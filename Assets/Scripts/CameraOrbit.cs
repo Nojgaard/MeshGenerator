@@ -30,6 +30,8 @@ public class CameraOrbit : MonoBehaviour
 
     public void Awake() {
         camera = GetComponentInChildren<Camera>();
+        Vector3 rot = transform.rotation.eulerAngles;
+        targetRotation = new Vector2(rot.x, rot.y);
         targetZoom = camera.transform.localPosition.z;
         freezeZoom = false;
     }

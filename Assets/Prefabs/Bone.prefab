@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7616181237065305713}
   - component: {fileID: 3505626257463478357}
   - component: {fileID: 4347495740204899390}
-  - component: {fileID: 373778645792549237}
+  - component: {fileID: 2062197070528871722}
   m_Layer: 0
   m_Name: Bone
   m_TagString: Untagged
@@ -29,13 +29,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4406428403631619518}
-  m_LocalRotation: {x: 0.5, y: 0.5, z: -0.5, w: 0.5}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.05, z: 0.1}
+  m_LocalScale: {x: 0.09, y: 0.09, z: 0.09}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 90, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6150021358909673315
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -43,7 +43,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4406428403631619518}
-  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &688233149113504310
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -99,7 +99,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 72
+  m_Constraints: 98
   m_CollisionDetection: 0
 --- !u!59 &3505626257463478357
 HingeJoint:
@@ -126,8 +126,8 @@ HingeJoint:
     freeSpin: 0
   m_UseLimits: 1
   m_Limits:
-    min: -30
-    max: 30
+    min: -25
+    max: 25
     bounciness: 0
     bounceMinVelocity: 0
     contactDistance: 0
@@ -149,8 +149,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf10a92e967a0a55097198b742f1e560, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!65 &373778645792549237
-BoxCollider:
+  boneSettings:
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 0}
+    radius: 0.5
+    strength: 1
+--- !u!135 &2062197070528871722
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -160,5 +165,5 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.0000001, y: 2, z: 1.0000002}
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
