@@ -58,7 +58,8 @@ RWStructuredBuffer<float3> cubePositions;
 RWStructuredBuffer<int> vertexIdBuffer;
 
 int numBalls;
-int numCubesPerAxis;
+int3 numVoxels;
+//int numCubesPerAxis;
 float threshold;
 float cubeLength;
 float gridCenter;
@@ -109,10 +110,10 @@ Triangle GetTriangle(int a, int b, int c) {
 [numthreads(8,8,8)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= numCubesPerAxis || id.y >= numCubesPerAxis || id.z >= numCubesPerAxis) {
+    if (id.x >= numVoxels.x || id.y >= numVoxels.y || id.z >= numVoxels.z) {
         return;
     }
-    int idx = id.z * numCubesPerAxis * numCubesPerAxis + id.y * numCubesPerAxis + id.x;
+    int idx = id.x + id.y * numVoxels.x + id.z * numVoxels.x * numVoxels.y;
     float3 centerPos = cubePositions[idx] + gridCenter;
     float4 cubeCorners[8] = {
         float4(-cubeLength, -cubeLength, -cubeLength, 0),
@@ -196,7 +197,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     v.normal = normal;
     vertexBuffer[vid] = v;
 
-    const int R[3] = {1, numCubesPerAxis, numCubesPerAxis * numCubesPerAxis};
+    const int R[3] = {1, numVoxels.x, numVoxels.x * numVoxels.y};
     const int pos[3] = {id.x, id.y, id.z};
     const uint edgeIds[3] = {0, 3, 8};
     for (i = 0; i < 3; i++) {

@@ -707,8 +707,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97166d1fe528675708a03d7713284b36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 2
-  resolution: 60
+  gridSize: {x: 1.5, y: 2, z: 2}
+  voxelSize: 0.04
   threshold: 0.1
   computeShader: {fileID: 7200000, guid: e2afc661a43c41669bb73fdb4b5208c2, type: 3}
   spine: {fileID: 0}
@@ -791,7 +791,7 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 4
-  m_Convex: 1
+  m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 1006790267}
 --- !u!1 &1650136348

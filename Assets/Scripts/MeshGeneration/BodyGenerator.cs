@@ -8,8 +8,10 @@ public class BodyGenerator : MonoBehaviour
     private bool updateRequested = false;
     
     [Header("Cube Grid Settings")]
-    public int width = 2;
-    public int resolution = 10;
+    public Vector3 gridSize;
+    public float voxelSize = .5f;
+    //public int width = 2;
+    //public int resolution = 10;
     public float threshold = .5f;
 
     public ComputeShader computeShader;
@@ -23,7 +25,7 @@ public class BodyGenerator : MonoBehaviour
     public CameraOrbit cameraController;
 
     BodyGenerator() {
-        cubeGrid = new CubeGrid(resolution, width, computeShader);
+        cubeGrid = new CubeGrid(gridSize, voxelSize, computeShader);
     }
 
     public void UpdateBodyMesh()  {
@@ -37,7 +39,7 @@ public class BodyGenerator : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        Gizmos.DrawWireCube(this.transform.position, new Vector3(width, width, width));
+        Gizmos.DrawWireCube(this.transform.position, gridSize);
         //cubeGrid.DrawGrid();
     }
 
@@ -81,7 +83,7 @@ public class BodyGenerator : MonoBehaviour
         if (updateRequested) {
             updateRequested = false;
             Debug.Log("Updating Body Generator " + computeShader.name + ".");
-            cubeGrid.UpdateGrid(threshold, this.transform.position, resolution, width, computeShader);
+            cubeGrid.UpdateGrid(threshold, this.transform.position, gridSize, voxelSize, computeShader);
             Mesh mesh = this.GetComponent<MeshFilter>().sharedMesh;
             cubeGrid.March(spine.GetComponentsInChildren<Bone>(), mesh);
 

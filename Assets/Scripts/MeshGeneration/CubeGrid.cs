@@ -23,9 +23,14 @@ struct GPUBall {
 
 public class CubeGrid
 {
-    private int gridWidth;
-    private float cubeWidth;
-    private int numCubesPerAxis;
+    private Vector3 gridSize;
+    private float voxelSize;
+    private Vector3Int numVoxels;
+
+
+    //private int gridWidth;
+    //private float cubeWidth;
+    //private int numCubesPerAxis;
     private float threshold;
     private Vector3[] positions;
     private int[] vertexIds;
@@ -41,11 +46,12 @@ public class CubeGrid
 
     private ComputeShader shader;
 
-    public CubeGrid(int resolution, int width, ComputeShader shader) {
+    public CubeGrid(Vector3  gridSize, float voxelSize, ComputeShader shader) {
         this.shader = shader;
-        this.cubeWidth = (float)width / resolution;
-        this.numCubesPerAxis = resolution;
-        this.gridWidth = width;
+        this.gridSize = gridSize;
+        this.voxelSize = voxelSize;
+        numVoxels = new Vector3Int((int)Mathf.Ceil(gridSize.x/voxelSize), (int)Mathf.Ceil(gridSize.y/voxelSize), (int)Mathf.Ceil(gridSize.z/voxelSize));
+
         InitializePositions();
     }
 	void GenerateTables () {
@@ -82,7 +88,7 @@ public class CubeGrid
         Debug.Log(table);
 	}
 
-    public void UpdateGrid(float threshold, Vector3 center, int resolution, int width, ComputeShader shader) {
+    public void UpdateGrid(float threshold, Vector3 center, Vector3 gridSize, float voxelSize, ComputeShader shader) {
         //GenerateTables();
         this.center = center;
         this.threshold = threshold;
@@ -90,25 +96,27 @@ public class CubeGrid
             ReleaseBuffers();
         }
         this.shader = shader;
-        if (resolution != this.numCubesPerAxis || this.gridWidth != width) {
-            this.numCubesPerAxis = resolution;
-            this.gridWidth = width;
-            this.cubeWidth = (float)gridWidth / numCubesPerAxis;
+        if (voxelSize != this.voxelSize || this.gridSize != gridSize) {    
+            this.gridSize = gridSize;
+            this.voxelSize = voxelSize;
+            numVoxels = new Vector3Int((int)Mathf.Ceil(gridSize.x/voxelSize), (int)Mathf.Ceil(gridSize.y/voxelSize), (int)Mathf.Ceil(gridSize.z/voxelSize));
             InitializePositions();
         }
 
     }
 
     void InitializePositions() {
-        float d = cubeWidth / 2;
-        positions = new Vector3[numCubesPerAxis * numCubesPerAxis * numCubesPerAxis];
-        vertexIds = new int[numCubesPerAxis * numCubesPerAxis * numCubesPerAxis];
-        for (int z = 0; z < numCubesPerAxis; ++z) {
-            for (int y = 0; y < numCubesPerAxis; ++y) {
-                for (int x = 0; x < numCubesPerAxis; ++x) {
-                    Vector3 pos = new Vector3(d + cubeWidth * x, d + cubeWidth * y, d + cubeWidth * z);
-                    pos = pos - new Vector3(gridWidth/2f,gridWidth/2f,gridWidth/2f);
-                    positions[x + y * numCubesPerAxis + z * numCubesPerAxis * numCubesPerAxis] = pos;
+        float d = voxelSize / 2;
+        positions = new Vector3[numVoxels.x * numVoxels.y * numVoxels.z];
+        vertexIds = new int[numVoxels.x * numVoxels.y * numVoxels.z];
+        Debug.Log(numVoxels);
+        for (int z = 0; z < numVoxels.z; ++z) {
+            for (int y = 0; y < numVoxels.y; ++y) {
+                for (int x = 0; x < numVoxels.x; ++x) {
+                    Vector3 pos = new Vector3(d + voxelSize * x, d + voxelSize * y, d + voxelSize * z);
+                    pos = pos - new Vector3(gridSize.x/2f,gridSize.y/2f,gridSize.z/2f);
+                    int idx = x + y * numVoxels.x + z * numVoxels.x * numVoxels.y;
+                    positions[idx] = pos;
                 }
             }
         } 
@@ -137,9 +145,10 @@ public class CubeGrid
         shader.SetBuffer(0, "metaballs", metaballsBuffer);
         shader.SetInt("numBalls", metaballs.Length);
 
-        shader.SetInt("numCubesPerAxis", numCubesPerAxis);
+        //shader.SetInt("numCubesPerAxis", numCubesPerAxis);
+        shader.SetInts("numVoxels", new int[] {numVoxels.x, numVoxels.y, numVoxels.z});
         shader.SetFloat("threshold", threshold);
-        shader.SetFloat("cubeLength", cubeWidth/2);
+        shader.SetFloat("cubeLength", voxelSize/2);
         shader.SetVector("gridCenter", center);
 
         triangleBuffer.SetCounterValue(0);
@@ -147,9 +156,9 @@ public class CubeGrid
         normalBuffer.SetCounterValue(0);
 
 
-        int numThreadsPerAxis = Mathf.CeilToInt (numCubesPerAxis / (float) 8);
+        //int numThreadsPerAxis = Mathf.CeilToInt (numCubesPerAxis / (float) 8);
 
-        shader.Dispatch(0, numThreadsPerAxis, numThreadsPerAxis, numThreadsPerAxis);
+        shader.Dispatch(0,  Mathf.CeilToInt (numVoxels.x / 8f), Mathf.CeilToInt (numVoxels.y / 8f), Mathf.CeilToInt (numVoxels.z / 8f));
 
          // Get number of triangles in the triangle buffer
         int numTris = GetCount(triangleBuffer);
@@ -243,7 +252,7 @@ public class CubeGrid
     public void DrawGrid() {
         //Gizmos.color = Color.red;
         foreach(Vector3 pos in positions) {
-            Gizmos.DrawWireCube(pos, new Vector3(cubeWidth, cubeWidth, cubeWidth));
+            Gizmos.DrawWireCube(pos, new Vector3(voxelSize, voxelSize, voxelSize));
         }
     }
 
@@ -268,7 +277,7 @@ public class CubeGrid
     }
 
     void CreateBuffers() {
-        int numCubes = numCubesPerAxis * numCubesPerAxis * numCubesPerAxis;
+        int numCubes = numVoxels.x * numVoxels.y * numVoxels.z;
         int maxTriangleCount = 5 * numCubes;
         if (positionsBuffer == null || positionsBuffer.count != numCubes) {
             ReleaseBuffers();
