@@ -94,6 +94,11 @@ public class Spine : MonoBehaviour
         }
     }
 
+    public void Move(Vector3 delta) {
+        transform.localPosition += delta;
+        body.UpdateBodyMesh();
+    }
+
     public void Initialize() {
         bones = new List<Bone>();
         Debug.Log("Intializeing Body");

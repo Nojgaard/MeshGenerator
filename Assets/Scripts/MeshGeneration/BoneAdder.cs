@@ -42,7 +42,7 @@ public class BoneAdder : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(b.transform.forward, b.transform.up);*/
 
 
-        transform.position = b.transform.position + ((appendFront)?-1:1) * -b.transform.forward * (b.boneSettings.radius + offset);
+        transform.localPosition = b.BallCenter + ((appendFront)?-1:1) * -b.transform.forward * (b.boneSettings.radius + offset);
         Vector3 front = (appendFront)?b.transform.forward : -b.transform.forward;
         transform.rotation = Quaternion.LookRotation(front, -b.transform.up);
     }

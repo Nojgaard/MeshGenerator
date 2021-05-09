@@ -114,7 +114,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         return;
     }
     int idx = id.x + id.y * numVoxels.x + id.z * numVoxels.x * numVoxels.y;
-    float3 centerPos = cubePositions[idx] + gridCenter;
+    float3 centerPos = cubePositions[idx];// + gridCenter;
     float4 cubeCorners[8] = {
         float4(-cubeLength, -cubeLength, -cubeLength, 0),
         float4(cubeLength, -cubeLength, -cubeLength, 0),

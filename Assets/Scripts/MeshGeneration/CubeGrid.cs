@@ -109,14 +109,13 @@ public class CubeGrid
         float d = voxelSize / 2;
         positions = new Vector3[numVoxels.x * numVoxels.y * numVoxels.z];
         vertexIds = new int[numVoxels.x * numVoxels.y * numVoxels.z];
-        Debug.Log(numVoxels);
         for (int z = 0; z < numVoxels.z; ++z) {
             for (int y = 0; y < numVoxels.y; ++y) {
                 for (int x = 0; x < numVoxels.x; ++x) {
                     Vector3 pos = new Vector3(d + voxelSize * x, d + voxelSize * y, d + voxelSize * z);
                     pos = pos - new Vector3(gridSize.x/2f,gridSize.y/2f,gridSize.z/2f);
                     int idx = x + y * numVoxels.x + z * numVoxels.x * numVoxels.y;
-                    positions[idx] = pos;
+                    positions[idx] = pos;// + center;
                 }
             }
         } 
@@ -129,7 +128,6 @@ public class CubeGrid
     }
 
     public void March(Bone[] metaballs, Mesh mesh) {
-        Debug.Log("Marching with " + metaballs.Length + " balls");
         CreateBuffers();
         //positionsBuffer.SetData(positions);
 
@@ -159,16 +157,6 @@ public class CubeGrid
         //int numThreadsPerAxis = Mathf.CeilToInt (numCubesPerAxis / (float) 8);
 
         shader.Dispatch(0,  Mathf.CeilToInt (numVoxels.x / 8f), Mathf.CeilToInt (numVoxels.y / 8f), Mathf.CeilToInt (numVoxels.z / 8f));
-
-         // Get number of triangles in the triangle buffer
-        int numTris = GetCount(triangleBuffer);
-
-        int vertexCount = GetCount(vertexBuffer);
-        Debug.Log("Vertex Count " + vertexCount);
-
-        // Get triangle data from shader
-        GPUTriangle[] tris = new GPUTriangle[numTris];
-        triangleBuffer.GetData(tris, 0, 0, numTris);
 
         mesh.Clear ();
 

@@ -10,11 +10,12 @@ public class Bone : MonoBehaviour
 
     private bool isHovering;
 
-    public Vector3 BallCenter { get { return -transform.up * .34f * boneSettings.radius + transform.position; }}
+    // Return the *Local* position
+    public Vector3 BallCenter { get { return -transform.up * .34f * boneSettings.radius + transform.localPosition + body.spine.transform.localPosition; }}
 
     void OnDrawGizmosSelected()
     {
-        Gizmos.DrawCube(BallCenter, new Vector3(0.05f, .05f, .05f));
+        Gizmos.DrawCube(-transform.up * .34f * boneSettings.radius + transform.position, new Vector3(0.05f, .05f, .05f));
     }
 
     void OnMouseDrag() {
@@ -35,21 +36,15 @@ public class Bone : MonoBehaviour
     void OnMouseOver() {
         if (Input.GetMouseButton(0) || Input.GetMouseButton(1)) {return;}
         body.cameraController.freezeZoom = true;
-        Material mat = body.GetComponent<MeshRenderer>().material;
-        Color col = mat.color;
-        col.a = 0.2f;
-        mat.color = col;
         isHovering = true;
+        body.SetFreezeDrag(true);
     }
 
     void OnMouseExit() {
         if (Input.GetMouseButton(0) || Input.GetMouseButton(1)) {return;}
         body.cameraController.freezeZoom = false;
-        Material mat = body.GetComponent<MeshRenderer>().material;
-        Color col = mat.color;
-        col.a = 1f;
-        mat.color = col;
         isHovering = false;
+        body.SetFreezeDrag(false);
     }
 
     void OnScroll() {
