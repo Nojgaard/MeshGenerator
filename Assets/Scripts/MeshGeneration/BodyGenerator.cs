@@ -110,7 +110,7 @@ public class BodyGenerator : MonoBehaviour
     }
 
     void HandleInput() {
-        if (Input.GetMouseButtonDown(0)) { 
+        if (!freezeDrag && Input.GetMouseButtonDown(0)) { 
             mouseDown = true;
             mouseDownPosition = Input.mousePosition;
             dragPosition = mouseDownPosition;

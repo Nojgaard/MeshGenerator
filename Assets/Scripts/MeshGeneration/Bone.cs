@@ -33,15 +33,15 @@ public class Bone : MonoBehaviour
         body.UpdateBodyMesh();
     }
 
-    void OnMouseOver() {
-        if (Input.GetMouseButton(0) || Input.GetMouseButton(1)) {return;}
+    void OnMouseEnter() {
+        //if (Input.GetMouseButton(0) || Input.GetMouseButton(1)) {return;}
         body.cameraController.freezeZoom = true;
         isHovering = true;
         body.SetFreezeDrag(true);
     }
 
     void OnMouseExit() {
-        if (Input.GetMouseButton(0) || Input.GetMouseButton(1)) {return;}
+        //if (Input.GetMouseButton(0) || Input.GetMouseButton(1)) {return;}
         body.cameraController.freezeZoom = false;
         isHovering = false;
         body.SetFreezeDrag(false);

@@ -55,8 +55,9 @@ public class CameraOrbit : MonoBehaviour
     private void OnZoom() {
         if (freezeZoom) { return; }
         targetZoom = Mathf.Clamp(targetZoom + Input.mouseScrollDelta.y * zoomSensitivity, maxZoom, minZoom);
-        //camera.transform.localPosition = Mathf.L
-        camera.transform.localPosition = Vector3.Lerp(camera.transform.localPosition, new Vector3(0,0,targetZoom), Time.deltaTime * zoomSmoothing);
+        Vector3 pos = camera.transform.localPosition;
+        pos.z = Vector3.Lerp(camera.transform.localPosition, new Vector3(0,0,targetZoom), Time.deltaTime * zoomSmoothing).z;
+        camera.transform.localPosition = pos;
     }
     
     // Update is called once per frame

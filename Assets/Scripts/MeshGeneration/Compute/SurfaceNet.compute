@@ -55,7 +55,6 @@ RWStructuredBuffer<Vertex> vertexBuffer;
 AppendStructuredBuffer<Triangle> triangles;
 RWStructuredBuffer<Ball> metaballs;
 RWStructuredBuffer<float3> cubePositions;
-RWStructuredBuffer<int> vertexIdBuffer;
 
 int numBalls;
 int3 numVoxels;
@@ -199,9 +198,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     const int R[3] = {1, numVoxels.x, numVoxels.x * numVoxels.y};
     const int pos[3] = {id.x, id.y, id.z};
-    const uint edgeIds[3] = {0, 3, 8};
     for (i = 0; i < 3; i++) {
-        //i = edgeIds[eid];
         if ((mask & (1 << i)) == 0) {
             continue;
         }

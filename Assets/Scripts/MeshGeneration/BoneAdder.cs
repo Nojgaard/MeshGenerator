@@ -9,6 +9,17 @@ public class BoneAdder : MonoBehaviour
 
     Spine spine;
 
+    void OnMouseEnter() {
+        Debug.Log("ON ENTER");
+        GetComponentInParent<BodyGenerator>().SetFreezeDrag(true);
+    }
+
+
+    void OnMouseExit() {
+        Debug.Log("ON EXIT");
+        GetComponentInParent<BodyGenerator>().SetFreezeDrag(false);
+    }
+
 
     void OnMouseDrag() {
         Plane plane = new Plane(Camera.main.transform.forward, transform.position);
