@@ -9,6 +9,6 @@ Simple functionality is implemented to manipulate the spheres. To drag the spher
 To change the size of each sphere, scroll on the ball representing the sphere.
 
 The code implementing the different algorithms as surface shaders are found in: 
-MeshGenerator/Assets/Scripts/MeshGeneration/Compute/
+MeshGenerator/Assets/Scripts/MeshGeneration/Compute/, which are in turn used by Scripts/CubeGrid.cs.
 
 ![example image](https://github.com/Nojgaard/MeshGenerator/blob/master/example_image.png)
