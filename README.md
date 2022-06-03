@@ -6,4 +6,6 @@ The overview of each algorithm is found here: https://cerbion.net/blog/understan
 
 To run the project, simply open the project in a Unity Editor and run.
 Simple functionality is implemented to manipulate the spheres. To drag the spheres, simply click and drag.
-To change the size of each sphere, scroll on the ball represening the sphere
+To change the size of each sphere, scroll on the ball representing the sphere
+
+![example image](https://github.com/Nojgaard/MeshGenerator/blob/master/example_image.png)
